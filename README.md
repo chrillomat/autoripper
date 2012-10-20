@@ -19,7 +19,7 @@ so I can merge it with the original code.
 
  * abcde
  * udev
-
+ * cd_discid
 
 ## license
 
