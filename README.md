@@ -17,10 +17,28 @@ so I can merge it with the original code.
 
 ## dependencies
 
+ * udev		# should already be installed
  * abcde
- * udev
- * cd_discid
+ * cd-discid
+ * flac
+ * eject
+ * id3v2
+ * normalize-audio
 
-## license
+For the lazy ones:
+
+	sudo apt-get install abcde cd-discid flac eject id3v2 normalize-audio
+
+
+## installation
+
+	sudo mkdir -p /usr/local/autoripper/
+	sudo cp autoripper.sh abcde.conf /usr/local/autoripper/
+	sudo cp rules.d/*.rules /etc/udev/rules.d/
+
+
+# license
 
 see LICENSE.GPL
+
+
