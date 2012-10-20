@@ -1,0 +1,4 @@
+# these rules start the autoripper wrapper script when an audio cd is inserted
+
+SUBSYSTEM=="block", KERNEL=="sr0", ENV{ID_CDROM_MEDIA_CD}=="1", ENV{ID_CDROM_MEDIA_TRACK_COUNT_AUDIO}=="?*", RUN+="/usr/local/bin/autoripper.sh" 
+
