@@ -106,7 +106,7 @@ function select_tracks {
 
 # do the actual ripping
 function do_ripping {
-	$ABCDE -c ${MYDIR}/abcde.conf -o $AUDIOFORMAT "${selected[*]}"
+	$ABCDE -c ${MYDIR}/abcde.conf -o $AUDIOFORMAT "${selected[*]}" &
 }
 
 
