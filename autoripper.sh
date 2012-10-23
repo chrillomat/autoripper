@@ -10,6 +10,10 @@ CDROM="/dev/sr0"
 DESTINATION="${HOME}/Music/"
 MYDIR="/usr/local/autoripper/"
 DISCIDTOOL="/usr/bin/cd-discid"
+ABCDE="/usr/bin/abcde"
+
+AUDIOFORMAT="flac"
+
 CDDBTOOL="/usr/bin/cddb-tool"
 CDDBURL='http://freedb.freedb.org:80/~cddb/cddb.cgi'
 CDDBPROTO=6
@@ -102,7 +106,7 @@ function select_tracks {
 
 # do the actual ripping
 function do_ripping {
-	abcde -c ${MYDIR}/abcde.conf -o flac "${selected[*]}"
+	$ABCDE -c ${MYDIR}/abcde.conf -o $AUDIOFORMAT "${selected[*]}"
 }
 
 
