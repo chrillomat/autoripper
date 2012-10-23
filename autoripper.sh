@@ -1,5 +1,4 @@
-#!/bin/bash
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+#!/bin/bash -x
 
 
 # autoripper wrapper script to check if audio cd is new (as in: yet unripped)
@@ -8,11 +7,11 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 ## CONFIG
 CDROM="/dev/sr0"
-DESTINATION="$HOME/Music/"
-
+DESTINATION="${HOME}/Music/"
+MYDIR="/usr/local/autoripper/"
 DISCIDTOOL="/usr/bin/cd-discid"
 CDDBTOOL="/usr/bin/cddb-tool"
-CDDBURL="http://freedb.freedb.org:80/~cddb/cddb.cgi"
+CDDBURL='http://freedb.freedb.org:80/~cddb/cddb.cgi'
 CDDBPROTO=6
 
 
@@ -21,51 +20,61 @@ CDDBPROTO=6
 # this is serious stuff - avoid touching it unless you know what you are doing
 
 # debug
-env | tee /var/log/autoripper-env.log
+#env | tee /var/log/autoripper-env.log
 
 # debug end
 
 
 # global variables
 
+	PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:${MYDIR}
+
 	# "selected" array of cherrypicked tracks
-	declare -a selected
+#	declare -a selected
 
 # stop global variables
+
+
+
+# is cddb info valid and has cd info
+function check_cddb_info {
+	cddbinfocheck=0
+}
+
+
+# eject cd
+function do_eject {
+	eject -r $CDROM
+}
+
 
 # check which audio cd this is and how many tracks it has
 function get_cddb_info {
 
-	## ===>> /usr/bin/cddb-tool query "http://freedb.freedb.org:80/~cddb/cddb.cgi" 6 $USER $HOSTNAME `/usr/bin/cd-discid /dev/sr0`
-	# 210 Found exact matches, list follows (until terminating `.')
-	# data d30be90f Gorillaz / Demon Days
-	# misc d30be90f Gorillaz / Demon Days
-	# rock d30be90f Gorillaz / Demon Days
-	# newage d30be90f Gorillaz / Demon Days
-	# .
+	DISCID=$( ${DISCIDTOOL} )
+	CDDBRESPONSE=$( ${CDDBTOOL} query "${CDDBURL}" ${CDDBPROTO} ${USER} ${HOSTNAME} ${DISCID} )
 
-	DISCID="$(${DISCIDTOOL})"
-	CDDBQUERY="query $CDDBURL $CDDBPROTO $USER $HOSTNAME ${DISCID}"
-	CDDBRESPONSE="$($CDDBTOOL $CDDBQUERY)"
+	check_cddb_info()
 
-	ARTISTALBUM="$(echo ${CDDBRESPONSE} | head -n 2 | tail -n 1 | cut -d ' ' -f 3- | sed 's/\//\-/g')"
-	TRACKS="echo $DISCID | cut -d ' ' -f 2)"
+	if ( "${cddbinfocheck}" == "0" ) {
+		ARTISTALBUM="$(echo ${CDDBRESPONSE} | head -n 2 | tail -n 1 | cut -d ' ' -f 3- | sed 's/\//-/g')"
+		TRACKS="echo $DISCID | cut -d ' ' -f 2)"
+	}
+	else {
+		do_eject()
+	}
 
 }
-
-
-# is cddb info valid and has cd info?
-function check_cddb_info {
-}
-
 
 # compare local files and cddb info
 function check_local {
 	# is there a directory for this artist/album combination?
+	echo "${DESTINATION}/${ARTISTALBUM}"
+
 	if ( -d "${DESTINATION}/${ARTISTALBUM}") { # album directory exists
 
 		# get number of audio-files in this dir
-		CNT=$()
+		CNT=$(find "${DESTINATION}/${ARTISTALBUM}" -type f -name '*.flac' | wc -l)
 
 		if ( $CNT < $TRACKS) { # files in dir is lower than tracks on disc
 			# => return incomplete
@@ -82,10 +91,10 @@ function check_local {
 
 # select tracks according to check_local()
 function select_tracks {
-	for i in `seq -w 1 $TRACKS`
+	for i in `seq -w 1 $TRACKS` # check if each number ...
 	do
-		if ( ! -f "${DESTINATION}/${ARTISTALBUM}/${i}\ *" ) {
-			selected+=( "${i}" )
+		if ( ! -f "${DESTINATION}/${ARTISTALBUM}/${i}\ *" ) { # ... is there and if not ...
+			selected+=( "${i}" ) # ... add to list of selected tracks
 		}
 	done
 }
@@ -93,14 +102,8 @@ function select_tracks {
 
 # do the actual ripping
 function do_ripping {
+	abcde -c ${MYDIR}/abcde.conf -o flac "${selected[*]}"
 }
-
-
-# eject cd
-function do_eject {
-}
-
-
 
 
 
