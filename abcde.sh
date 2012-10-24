@@ -1,4 +1,4 @@
 #!/bin/bash
 
-OUTPUTDIR=$ARG1 WAVOUTPUTDIR=${ARG1}/tmp/ OUTPUTTYPE=$ARG2 $ARG3 -c $ARG4/abcde.conf "${selected[*]}"
-chown -R ${ARG5}: ${ARG6}/${ARG7}
+OUTPUTDIR=$1 WAVOUTPUTDIR=${1}/tmp/ OUTPUTTYPE=$2 $3 -c $4/abcde.conf "${8}"
+chown -R ${5}: ${6}/${7}
