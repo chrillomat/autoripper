@@ -109,9 +109,7 @@ function select_tracks {
 
 # do the actual ripping
 function do_ripping {
-	${MYDIR}/abcde.sh $DESTINATION $AUDIOFORMAT $ABCDE ${MYDIR} ${RECIPIENT} ${DESTINATION} ${ARTISTALBUM}
-#	OUTPUTDIR=$DESTINATION WAVOUTPUTDIR=${DESTINATION}/tmp/ OUTPUTTYPE=$AUDIOFORMAT $ABCDE -c ${MYDIR}/abcde.conf "${selected[*]}" &
-#	chown -R ${RECIPIENT}: ${DESTINATION}/${ARTISTALBUM}
+	${MYDIR}/abcde.sh $DESTINATION $AUDIOFORMAT $ABCDE ${MYDIR} ${RECIPIENT} ${DESTINATION} ${ARTISTALBUM} &
 }
 
 
