@@ -6,15 +6,17 @@
 
 
 ## CONFIG
+RECIPIENT="my-username" # user which should use the files after the ripping
+AUDIOFORMAT="flac"
+DESTINATION="/home/${RECIPIENT}/Music"
+
 CDROM="/dev/sr0"
-DESTINATION="${HOME}/Music"
 MYDIR="/usr/local/autoripper/"
+
 DISCIDTOOL="/usr/bin/cd-discid"
 ABCDE="/usr/bin/abcde"
-
-AUDIOFORMAT="flac"
-
 CDDBTOOL="/usr/bin/cddb-tool"
+
 CDDBURL='http://freedb.freedb.org:80/~cddb/cddb.cgi'
 CDDBPROTO=6
 
@@ -56,7 +58,7 @@ function do_eject {
 function get_cddb_info {
 
 	DISCID="$( ${DISCIDTOOL} $CDROM )"
- 	CDDBRESPONSE="$( ${CDDBTOOL} query ${CDDBURL} ${CDDBPROTO} ${USER} ${HOSTNAME} ${DISCID} | tail -n+2 | head -n 1 )"
+ 	CDDBRESPONSE="$( ${CDDBTOOL} query ${CDDBURL} ${CDDBPROTO} ${RECIPIENT} ${HOSTNAME} ${DISCID} | tail -n+2 | head -n 1 )"
 
 	if [ $? == 0 ]
 	then
@@ -107,7 +109,9 @@ function select_tracks {
 
 # do the actual ripping
 function do_ripping {
-	OUTPUTDIR=$DESTINATION WAVOUTPUTDIR=${DESTINATION}/tmp/ OUTPUTTYPE=$AUDIOFORMAT $ABCDE -c ${MYDIR}/abcde.conf "${selected[*]}" &
+	${MYDIR}/abcde.sh $DESTINATION $AUDIOFORMAT $ABCDE ${MYDIR} ${RECIPIENT} ${DESTINATION} ${ARTISTALBUM}
+#	OUTPUTDIR=$DESTINATION WAVOUTPUTDIR=${DESTINATION}/tmp/ OUTPUTTYPE=$AUDIOFORMAT $ABCDE -c ${MYDIR}/abcde.conf "${selected[*]}" &
+#	chown -R ${RECIPIENT}: ${DESTINATION}/${ARTISTALBUM}
 }
 
 
