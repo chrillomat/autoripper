@@ -6,12 +6,12 @@
 
 
 ## CONFIG
-RECIPIENT="my-username" # user which should use the files after the ripping
+RECIPIENT="my username" # user which should use the files after the ripping, udev runs autoripper as root
 AUDIOFORMAT="flac"
 DESTINATION="/home/${RECIPIENT}/Music"
 
 CDROM="/dev/sr0"
-MYDIR="/usr/local/autoripper/"
+MYDIR="/usr/local/autoripper"
 
 DISCIDTOOL="/usr/bin/cd-discid"
 ABCDE="/usr/bin/abcde"
@@ -36,7 +36,7 @@ CDDBPROTO=6
 	PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:${MYDIR}
 
 	# "selected" array of cherrypicked tracks
-#	declare -a selected
+	declare -a selected
 
 # stop global variables
 
@@ -58,15 +58,50 @@ function do_eject {
 function get_cddb_info {
 
 	DISCID="$( ${DISCIDTOOL} $CDROM )"
- 	CDDBRESPONSE="$( ${CDDBTOOL} query ${CDDBURL} ${CDDBPROTO} ${RECIPIENT} ${HOSTNAME} ${DISCID} | tail -n+2 | head -n 1 )"
+	ERR=$?
 
-	if [ $? == 0 ]
+	if [ $ERR -ne 0 ]
 	then
-		ARTISTALBUM="$(echo ${CDDBRESPONSE} | cut -d ' ' -f 3- | sed 's/\//-/g')"
+		echo "ERR: ${DISCIDTOOL} exits with error $ERR"
+		exit $ERR
+	fi
+
+	CDDBTEMP=$(mktemp --tmpdir=/tmp/ CDDBTEMP.XXXX)
+ 	ERR=$( ${CDDBTOOL} query ${CDDBURL} ${CDDBPROTO} ${RECIPIENT} ${HOSTNAME} ${DISCID} > $CDDBTEMP 2>&1 ; echo $? )
+
+	if [ $ERR -eq 0 ]
+	then
+		RETCODE=$( head -n1 $CDDBTEMP | cut -d ' '  -f 1 )
+
 		TRACKS="$( echo $DISCID | cut -d ' ' -f 2 )"
+
+		case $RETCODE in
+			200) # one entry
+				ARTISTALBUM=$( cat $CDDBTEMP | cut -d ' ' -f 4- | sed 's/\//-/g')
+				;;
+			210) # multiple entries
+				ARTISTALBUM=$( cat $CDDBTEMP | head -n+2 | tail -n 1 | cut -d ' ' -f 3- | sed 's/\//-/g')
+				;;
+			202) # no entry
+				do_eject
+				echo "No CDDB entry for this disc"
+				rm $CDDBTEMP
+				exit 0
+				;;
+			*) # all other stuff
+				do_eject
+				echo "ERR: ${CDDBTOOL} exits with code $RETCODE"
+				cat $CDDBTEMP
+				rm $CDDBTEMP
+				exit 0
+				;;
+		esac
 	else
 		do_eject
+		echo "ERR: ${CDDBTOOL} exits with error $ERR"
 	fi
+
+	rm $CDDBTEMP
 
 }
 
@@ -80,7 +115,7 @@ function check_local {
 		# get number of audio-files in this dir
 		CNT=$(find "${DESTINATION}/${ARTISTALBUM}" -type f -name '*.flac' | wc -l)
 
-		if [ $CNT < $TRACKS ] # files in dir is lower than tracks on disc
+		if [ $CNT -lt $TRACKS ] # files in dir is lower than tracks on disc
 		then
 			# => return incomplete
 			LOCALCHECK="incomplete"
@@ -99,7 +134,7 @@ function check_local {
 function select_tracks {
 	for i in `seq -w 1 $TRACKS` # check if each number ...
 	do
-		if ( ! -f "${DESTINATION}/${ARTISTALBUM}/${i}\ *" ) # ... is there and if not ...
+		if [ $(find "${DESTINATION}/${ARTISTALBUM}/" -type f -name "${i}*.flac" | wc -l) -eq 0 ] # ... is not there and if so ...
 		then
 			selected+=( "${i}" ) # ... add to list of selected tracks
 		fi
@@ -109,7 +144,7 @@ function select_tracks {
 
 # do the actual ripping
 function do_ripping {
-	${MYDIR}/abcde.sh $DESTINATION $AUDIOFORMAT $ABCDE ${MYDIR} ${RECIPIENT} ${DESTINATION} ${ARTISTALBUM} &
+	${MYDIR}/abcde.sh "${DESTINATION}" "${AUDIOFORMAT}" "${ABCDE}" "${MYDIR}" "${RECIPIENT}" "${DESTINATION}" "${ARTISTALBUM}" "${selected[*]}" &
 }
 
 
