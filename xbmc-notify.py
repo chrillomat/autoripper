@@ -5,7 +5,7 @@
 # monitoring apps, calendar apps, etc.
 
 import sys
-sys.path.append("lib")
+sys.path.append("lib/python")
 
 from xbmcclient import *
 from socket import *
