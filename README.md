@@ -15,6 +15,19 @@ so I can merge it with the original code.
  * wrapper script to check if cd is already ripped and to start abcde
 
 
+## credits
+
+I redistribute some scripts from xbmc forums, without explizit written permission.
+If any author of those scripts wants me to remove them, please drop me a line.
+
+Thanks to
+
+ * Hitcher & N3MIS15 for their work on the library update script at
+	http://forum.xbmc.org/showthread.php?tid=135074
+ * XBMC Devs for their eventclient example scripts and libraries at
+	https://github.com/xbmc/xbmc/tree/master/tools/EventClients
+
+
 ## dependencies
 
  * udev		# should already be installed
