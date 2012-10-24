@@ -7,7 +7,7 @@
 
 ## CONFIG
 CDROM="/dev/sr0"
-DESTINATION="${HOME}/Music/"
+DESTINATION="${HOME}/Music"
 MYDIR="/usr/local/autoripper/"
 DISCIDTOOL="/usr/bin/cd-discid"
 ABCDE="/usr/bin/abcde"
@@ -107,7 +107,7 @@ function select_tracks {
 
 # do the actual ripping
 function do_ripping {
-	$ABCDE -c ${MYDIR}/abcde.conf -o $AUDIOFORMAT "${selected[*]}" &
+	OUTPUTDIR=$DESTINATION WAVOUTPUTDIR=${DESTINATION}/tmp/ OUTPUTTYPE=$AUDIOFORMAT $ABCDE -c ${MYDIR}/abcde.conf "${selected[*]}" &
 }
 
 
@@ -115,3 +115,22 @@ function do_ripping {
 
 
 # MAIN
+get_cddb_info
+
+check_local
+
+case ${LOCALCHECK} in
+	"incomplete")
+		select_tracks
+		do_ripping
+		;;
+	"complete")
+		do_eject
+		;;
+	"newalbum")
+		do_ripping
+		;;
+	*)
+		do_eject
+		;;
+esac
