@@ -46,8 +46,9 @@ For the lazy ones:
 ## installation
 
 	sudo mkdir -p /usr/local/autoripper/
-	sudo cp autoripper.sh abcde.conf /usr/local/autoripper/
+	sudo cp -r *.conf *.sh *.py icons lib LICENSE.GPL README.md /usr/local/autoripper/
 	sudo cp rules.d/*.rules /etc/udev/rules.d/
+	sudo chown -R root: /usr/local/autoripper/ /etc/udev/rules.d/
 
 
 # license
