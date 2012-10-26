@@ -4,24 +4,9 @@
 # autoripper wrapper script to check if audio cd is new (as in: yet unripped)
 # and run abcde accordingly
 
+# CONFIG is in autoripper.conf
 
-## CONFIG
-RECIPIENT="my username" # user which should use the files after the ripping, udev runs autoripper as root
-AUDIOFORMAT="flac"
-DESTINATION="/home/${RECIPIENT}/Music"
-
-CDROM="/dev/sr0"
-MYDIR="/usr/local/autoripper"
-
-DISCIDTOOL="/usr/bin/cd-discid"
-ABCDE="/usr/bin/abcde"
-CDDBTOOL="/usr/bin/cddb-tool"
-
-CDDBURL='http://freedb.freedb.org:80/~cddb/cddb.cgi'
-CDDBPROTO=6
-
-
-## STOP CONFIG
+. autoripper.conf
 
 # this is serious stuff - avoid touching it unless you know what you are doing
 
