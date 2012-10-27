@@ -2,6 +2,12 @@
 
 . autoripper.conf # get config
 
+if [ -f autoripper.conf.local ]
+then
+	. autoripper.conf.local
+fi
+
+
 $MYDIR/xbmc-notify.py "Started ripping $7" # xbmc notification of rip start
 
 OUTPUTDIR=$1 WAVOUTPUTDIR=${1}/tmp/ OUTPUTTYPE=$2 $3 -c $4/abcde.conf ${8} # do the actual ripping
