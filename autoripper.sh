@@ -6,11 +6,14 @@
 
 # CONFIG is in autoripper.conf
 
-. autoripper.conf
+SELF=$0
+DIRNAME=$(dirname $SELF)
 
-if [ -f autoripper.conf.local ]
+. $DIRNAME/autoripper.conf
+
+if [ -f $DIRNAME/autoripper.conf.local ]
 then
-	. autoripper.conf.local
+	. $DIRNAME/autoripper.conf.local
 fi
 
 # this is serious stuff - avoid touching it unless you know what you are doing
