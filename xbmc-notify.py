@@ -27,7 +27,7 @@ def main():
     
     packet = PacketNOTIFICATION("Autoripper",            # caption
                                 sys.argv[1],   # message
-#                                ICON_PNG,               # optional icon type
+                                ICON_PNG,               # optional icon type
                                 "icons/disc-audio.png") # icon file (local)
     packet.send(sock, addr)
     
