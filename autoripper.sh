@@ -144,7 +144,7 @@ function do_ripping {
 
 # MAIN
 
-MULTIPLIER=2 # generates from 0 - 9.99999
+MULTIPLIER=1 # generates from 0 - 9.99999
 SLEEP=$( echo "scale=1; $RANDOM*$MULTIPLIER/32767" | bc )
 
 sleep $SLEEP
