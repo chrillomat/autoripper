@@ -4,8 +4,10 @@
 # window with a custom icon inside XBMC. It could be used by mail
 # monitoring apps, calendar apps, etc.
 
-import sys
-sys.path.append("lib/python")
+import sys,os
+s_abspath = os.path.abspath(os.path.dirname(sys.argv[0]))
+
+sys.path.append( s_abspath+"/lib/python" )
 
 from xbmcclient import *
 from socket import *
@@ -28,7 +30,7 @@ def main():
     packet = PacketNOTIFICATION("Autoripper",            # caption
                                 sys.argv[1],   # message
                                 ICON_PNG,               # optional icon type
-                                "icons/disc-audio.png") # icon file (local)
+                                s_abspath+"/icons/disc-audio.png") # icon file (local)
     packet.send(sock, addr)
     
     packet = PacketBYE()
