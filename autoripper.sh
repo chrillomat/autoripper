@@ -152,12 +152,12 @@ then
 	LOCKPID=$(cat $LOCKFILE)
 
 	# if cat $LOCKFILE still running?
-	if [ $( ps -p $LOCKPID -o pid,comm --no-heading | grep -q "autoripper.sh" ; echo $? ) == 0 ]
+	if ( [ $( ps -p $LOCKPID -o pid,comm --no-heading | grep -q 'autoripper' ; echo $? ) -eq 0 ] || [ $( ps auxwww | grep -v grep | grep -q 'abcde' ; echo $? ) -eq 0 ] )
 	then
 		exit 0 # not running twice, die!
 	fi
 
-	# from here only happens if autoripper is not still running
+	# anything from here should only happen if autoripper or abcde are not running atm
 
 	lockfile-remove --lock-name $LOCKFILE # removing stale lockfile
 fi
