@@ -8,6 +8,11 @@
 
 . autoripper.conf
 
+if [ -f autoripper.conf.local ]
+then
+	. autoripper.conf.local
+fi
+
 # this is serious stuff - avoid touching it unless you know what you are doing
 
 # debug
@@ -137,6 +142,28 @@ function do_ripping {
 
 
 # MAIN
+
+
+if [ -f $LOCKFILE ]
+then
+	lockfile-check --use-pid --lock-name $LOCKFILE
+	LOCKCHECK=$?
+
+	LOCKPID=$(cat $LOCKFILE)
+
+	# if cat $LOCKFILE still running?
+	if [ $( ps -p $LOCKPID -o pid,comm --no-heading | grep -q "autoripper.sh" ; echo $? ) == 0 ]
+	then
+		exit 0 # not running twice, die!
+	fi
+
+	# from here only happens if autoripper is not still running
+
+	lockfile-remove --lock-name $LOCKFILE # removing stale lockfile
+fi
+
+lockfile-create --use-pid --lock-name $LOCKFILE # creating lockfile
+
 get_cddb_info
 
 check_local
@@ -156,3 +183,5 @@ case ${LOCALCHECK} in
 		do_eject
 		;;
 esac
+
+#lockfile-remove --lock-name $LOCKFILE # removing lockfile after ripping ends in abcde.sh
