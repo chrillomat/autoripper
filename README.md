@@ -8,6 +8,8 @@ linux distro, but I did not test it.
 If you change the script to fit in with another linux distro, please send me a diff
 so I can merge it with the original code.
 
+For reporting issues and other stuff please visit my gitlab @ http://git.nwn-server.de/ZyanKLee/autoripper
+
 
 ## contents
 
