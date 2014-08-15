@@ -30,6 +30,7 @@ fi
 
 	# "selected" array of cherrypicked tracks
 	declare -a selected
+	declare -a available
 
 # stop global variables
 
@@ -43,7 +44,7 @@ fi
 
 # eject cd
 function do_eject {
-	eject $CDROM
+#	eject $CDROM
 	lockfile-remove --lock-name $LOCKFILE
 }
 
@@ -51,30 +52,26 @@ function do_eject {
 # check which audio cd this is and how many tracks it has
 function get_cddb_info {
 
-	DISCID="$( ${DISCIDTOOL} $CDROM )"
-	ERR=$?
-
-	if [ $ERR -ne 0 ]
-	then
-		echo "ERR: ${DISCIDTOOL} exits with error $ERR"
-		exit $ERR
-	fi
-
-	CDDBTEMP=$(mktemp --tmpdir=/tmp/ CDDBTEMP.XXXX)
- 	ERR=$( ${CDDBTOOL} query ${CDDBURL} ${CDDBPROTO} ${RECIPIENT} ${HOSTNAME} ${DISCID} > $CDDBTEMP 2>&1 ; echo $? )
+        CDDBTEMP=/tmp/.cddb
+	$ABCDE -a cddb -N > $CDDBTEMP
+ 	ERR=$?
 
 	if [ $ERR -eq 0 ]
 	then
-		RETCODE=$( head -n1 $CDDBTEMP | cut -d ' '  -f 1 )
-
-		TRACKS="$( echo $DISCID | cut -d ' ' -f 2 )"
+	        TMPDIR=$( tail -n1 /tmp/.cddb | cut -d ' '  -f 4 )
+		TMPDIR=${TMPDIR%?}
+		RETCODE=$( head -n1 $TMPDIR/cddbquery | cut -d ' '  -f 1 )
 
 		case $RETCODE in
-			200) # one entry
-				ARTISTALBUM=$( cat $CDDBTEMP | cut -d ' ' -f 4- | sed 's/\//-/g')
-				;;
-			210) # multiple entries
-				ARTISTALBUM=$( cat $CDDBTEMP | head -n+2 | tail -n 1 | cut -d ' ' -f 3- | sed 's/\//-/g')
+			200|210) # one or more entry
+				ALBUMARTIST=$( grep DTITLE $TMPDIR/cddbread.1 | cut -d '=' -f 2 )
+				# build list of tracks for later use (see check_local and select_tracks)
+				TRACKS=$(expr $(cat cddbread.1 | grep TTITLE | tail -n1 | cut -d '=' -f 1 | cut --complement -b 1-6) + 1)
+				for i in $(seq 0 $(expr $TRACKS - 1)) # check if each number ...
+				do
+				    available+=( "$( grep TTITLE${i} $TMPDIR/cddbread.1 | cut -d '=' -f 2 )" ) # ... add to list of available tracks
+				done
+				echo ${available[@]}
 				;;
 			202) # no entry
 				do_eject
@@ -92,7 +89,7 @@ function get_cddb_info {
 		esac
 	else
 		do_eject
-		echo "ERR: ${CDDBTOOL} exits with error $ERR"
+		echo "ERR: abcde exits with error $ERR"
 	fi
 
 	rm $CDDBTEMP
@@ -101,22 +98,19 @@ function get_cddb_info {
 
 # compare local files and cddb info
 function check_local {
+        ARTIST=$( echo $ALBUMARTIST | cut -d '/' -f 1 )
+	ARTIST=${ARTIST%?}
+	ALBUM=$( echo $ALBUMARTIST | cut -d '/' -f 2 )
+	ALBUM=${ALBUM#?}
 	# is there a directory for this artist/album combination?
-	echo "${DESTINATION}/${ARTISTALBUM}"
+	DESTDIR="${DESTINATION}/${ARTIST}/${ALBUM}"
+	echo $DESTDIR
 
-	if [ -d "${DESTINATION}/${ARTISTALBUM}" ] # album directory exists
+	# BAUSTELLE: even if number of files in directory matches number of tracks, we still need to compare filenames!
+	if [ -d "$DESTDIR" ] # album directory exists
 	then
-		# get number of audio-files in this dir
-		CNT=$(find "${DESTINATION}/${ARTISTALBUM}" -type f -name '*.flac' | wc -l)
-
-		if [ $CNT -lt $TRACKS ] # files in dir is lower than tracks on disc
-		then
-			# => return incomplete
-			LOCALCHECK="incomplete"
-		else
-			# => return complete
-			LOCALCHECK="complete"
-		fi
+	        # leave it up to select_track which or if any tracks need to be ripped
+		LOCALCHECK="incomplete"
 	else # new album
 		# => return newalbum
 		LOCALCHECK="newalbum"
@@ -126,11 +120,12 @@ function check_local {
 
 # select tracks according to check_local()
 function select_tracks {
-	for i in `seq -w 1 $TRACKS` # check if each number ...
+	for i in $(seq 0 $(expr $TRACKS - 1)) # check if each number ...
 	do
-		if [ $(find "${DESTINATION}/${ARTISTALBUM}/" -type f -name "${i}*.flac" | wc -l) -eq 0 ] # ... is not there and if so ...
+	        # BAUSTELLE: correctly check for each file
+		if [ $(find "$DESTDIR" -type f -name "*${available[i]}.${AUDIOFORMAT}" | wc -l) -eq 0 ] # ... is not there and if so ...
 		then
-			selected+=( "${i}" ) # ... add to list of selected tracks
+			selected+=( "$(expr $i + 1)" ) # ... add to list of selected tracks
 		fi
 	done
 }
@@ -179,7 +174,12 @@ check_local
 case ${LOCALCHECK} in
 	"incomplete")
 		select_tracks
-		do_ripping
+		if ( [ ${#selected} -eq 0 ] )
+		then
+		    do_eject
+		else
+		    do_ripping
+		fi
 		;;
 	"complete")
 		do_eject
