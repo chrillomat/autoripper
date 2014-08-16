@@ -53,7 +53,7 @@ function do_eject {
 function get_cddb_info {
 
         CDDBTEMP=/tmp/.cddb
-	$ABCDE -a cddb -N > $CDDBTEMP
+	sudo -u $RECIPIENT $ABCDE -a cddb -N > $CDDBTEMP
  	ERR=$?
 
 	if [ $ERR -eq 0 ]
@@ -66,12 +66,11 @@ function get_cddb_info {
 			200|210) # one or more entry
 				ALBUMARTIST=$( grep DTITLE $TMPDIR/cddbread.1 | cut -d '=' -f 2 )
 				# build list of tracks for later use (see check_local and select_tracks)
-				TRACKS=$(expr $(cat cddbread.1 | grep TTITLE | tail -n1 | cut -d '=' -f 1 | cut --complement -b 1-6) + 1)
+				TRACKS=$(expr $(cat $TMPDIR/cddbread.1 | grep TTITLE | tail -n1 | cut -d '=' -f 1 | cut --complement -b 1-6) + 1)
 				for i in $(seq 0 $(expr $TRACKS - 1)) # check if each number ...
 				do
-				    available+=( "$( grep TTITLE${i} $TMPDIR/cddbread.1 | cut -d '=' -f 2 )" ) # ... add to list of available tracks
+				    available+=( "$( grep TTITLE${i}= $TMPDIR/cddbread.1 | cut -d = -f 2 )" ) # ... add to list of available tracks
 				done
-				echo ${available[@]}
 				;;
 			202) # no entry
 				do_eject
@@ -122,7 +121,7 @@ function check_local {
 function select_tracks {
 	for i in $(seq 0 $(expr $TRACKS - 1)) # check if each number ...
 	do
-	        # BAUSTELLE: correctly check for each file
+	        # check for each file vs. track name
 		if [ $(find "$DESTDIR" -type f -name "*${available[i]}.${AUDIOFORMAT}" | wc -l) -eq 0 ] # ... is not there and if so ...
 		then
 			selected+=( "$(expr $i + 1)" ) # ... add to list of selected tracks
@@ -174,7 +173,7 @@ check_local
 case ${LOCALCHECK} in
 	"incomplete")
 		select_tracks
-		if ( [ ${#selected} -eq 0 ] )
+		if ( [ ${#selected[@]} -eq 0 ] )
 		then
 		    do_eject
 		else

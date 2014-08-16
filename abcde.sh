@@ -10,9 +10,9 @@ fi
 
 $MYDIR/xbmc-notify.py "Started ripping $7" # xbmc notification of rip start
 
-# TODO: run as user ${RECIPIENT}
-#OUTPUTDIR=$1 WAVOUTPUTDIR=${1}/tmp/ OUTPUTTYPE=$2 $3 -c $4/abcde.conf ${8} # do the actual ripping
+sudo -u $5 OUTPUTDIR=$1 WAVOUTPUTDIR=${1}/tmp/ OUTPUTTYPE=$2 $3 -c $4/abcde.conf ${8} # do the actual ripping
 
+# we leacve this up to abcde / post_encode command:
 #chown -R ${5}: "${6}/${7}" # change the owner to the recipient
 
 lockfile-remove --lock-name $LOCKFILE # remove the lockfile
