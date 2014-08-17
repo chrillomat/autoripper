@@ -7,16 +7,18 @@ then
 	. autoripper.conf.local
 fi
 
+$MYDIR/xbmc-notify.py "Started ripping" # xbmc notification of rip start
 
-$MYDIR/xbmc-notify.py "Started ripping $7" # xbmc notification of rip start
+$1 -c $2/abcde.conf -d $3 ${4} # do the actual ripping
+ERR=$?
 
-sudo -u $5 OUTPUTDIR=$1 WAVOUTPUTDIR=${1}/tmp/ OUTPUTTYPE=$2 $3 -c $4/abcde.conf ${8} # do the actual ripping
+if [ $ERR -eq 0 ]
+then
+    #$MYDIR/updatexbmc.py # update the audio library in xbmc
 
-# we leacve this up to abcde / post_encode command:
-#chown -R ${5}: "${6}/${7}" # change the owner to the recipient
-
-lockfile-remove --lock-name $LOCKFILE # remove the lockfile
-
-#$MYDIR/updatexbmc.py # update the audio library in xbmc
-
-$MYDIR/xbmc-notify.py "Finished ripping $7" # xbmc notification of rip end
+    $MYDIR/xbmc-notify.py "Finished ripping" # xbmc notification of rip end
+else
+    echo "ERR: process abcde ended with error $ERR"
+    $MYDIR/xbmc-notify.py "CD ripping error" # xbmc notification of rip error
+    
+fi

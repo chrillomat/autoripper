@@ -1,0 +1,9 @@
+[Unit]
+Description=Auto rip CD with abcde
+BindsTo=dev-%i.device
+
+[Service]
+Type=simple
+User=pi
+ExecStart=/home/chrilli/git/autoripper/autoripper.sh %I
+

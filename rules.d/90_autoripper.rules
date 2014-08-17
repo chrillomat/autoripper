@@ -1,4 +1,4 @@
 # these rules start the autoripper wrapper script when an audio cd is inserted
 
-SUBSYSTEM=="block", KERNEL=="sr0", ENV{ID_CDROM_MEDIA_CD}=="1", ENV{ID_CDROM_MEDIA_TRACK_COUNT_AUDIO}=="?*", RUN+="/home/chrilli/git/autoripper/autoripper.sh" 
+SUBSYSTEM=="block", KERNEL=="sr0", ENV{ID_CDROM_MEDIA_CD}=="1", ENV{ID_CDROM_MEDIA_TRACK_COUNT_AUDIO}=="?*", RUN+="/bin/systemctl --no-block start autoripper@%k.service" 
 
